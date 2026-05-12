@@ -26,6 +26,11 @@ io.on('connection', (socket) => {
     socket.on("disconnect", () => {
         console.log('user disconnect');
     });
+
+    socket.on("username", (username) => {
+        console.log('user id' + socket.id + " set to " + username);
+        socket.username = username;
+    });
 });
 
 server.listen(3000, () => {

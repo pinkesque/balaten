@@ -1,6 +1,6 @@
 const socket = io();
 
-canvas = document.getElementById('canvas');
+canvas = document.getElementById('game');
 ctx = canvas.getContext('2d');
 
 canvas.addEventListener("contextmenu", e => {
@@ -10,35 +10,59 @@ canvas.addEventListener("contextmenu", e => {
 function resize() {
 	const dpr = window.devicePixelRatio || 1;
 	
-	canvas.width = window.innerWidth * dpr;
-	canvas.height = window.innerHeight * dpr;
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
 	
 	canvas.style.width = window.innerWidth + "px",
-	canvas.style.height = window.innerHeight + "px",
+	canvas.style.height = window.innerHeight + "px"
 	
-	ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+	// ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
 window.addEventListener("resize", resize);
 resize();
 
-function drawText(text, x, y) {
-    ctx.font = '64px Arial';
+function drawText(text, x, y, fontsize, justify) {
+    ctx.font = fontsize + 'px funny';
 
     ctx.fillStyle = 'white';
-    ctx.fillText(text, x, y);
 
     ctx.strokeStyle = 'black';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 8;
+
+    if (justify === "center") {
+        x -= ctx.measureText(text).width / 2;
+    }
+
+    if (justify === "right") {
+        x -= ctx.measureText(text).width;
+    }
+
     ctx.strokeText(text, x, y);
+    ctx.fillText(text, x, y);
+}
+
+function drawTextCursor(x, y, fontsize, text, pos) {
+    if (Math.floor(performance.now() / 500) % 2 === 0) {
+        const beforeCursor = text.substring(0, input.selectionStart);
+        ctx.font = fontsize + 'px funny';
+
+        const textWidth = ctx.measureText(text).width;
+        const beforeWidth = ctx.measureText(beforeCursor).width;
+
+        ctx.fillStyle = "black";
+        ctx.fillRect(x - textWidth / 2 + beforeWidth - 2, y - fontsize + 8, 4, fontsize);
+    }
 }
 
 canvas.addEventListener("click", () => {
-    socket.emit("buttonPressed");
+    input.focus();
 });
 
+notletters = ["Backspace", "Enter", "Shift", "Control", "Alt", "Meta", "CapsLock", "Tab", "Escape", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Dead", "AltGraph", "ContextMenu", "NumLock", "ScrollLock", "Pause", "Insert", "Home", "PageUp", "Delete", "End", "PageDown", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"];
+
 document.addEventListener("keydown", (event) => {
-    socket.emit("keypress", event.code);
+    input.focus();
 });
 
 socket.on("changeText", (newText) => {
@@ -50,19 +74,55 @@ function update() {
     requestAnimationFrame(update);
 }
 
-text = "yo";
+var text = "yo";
+
+var userSet = false;
+
+let input;
+
+function init() {
+    input = document.createElement("input");
+    input.id = "input"; 
+    input.type = "text";
+    input.style.position = "absolute";
+    input.style.left = "-9999px";
+    input.style.top = "-9999px";
+    input.value = "";
+    document.body.appendChild(input);
+    input.focus();
+
+    update();
+}
 
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     ctx.save();
 
-    ctx.fillStyle = 'black';
-    ctx.fillRect(50, 50, 100, 100);
+    if (!userSet) {
 
+        drawText("hello, what is your name :D", canvas.width / 2, canvas.height / 2 - 100, 64, "center");
+
+        drawText(document.getElementById("input").value, canvas.width / 2, canvas.height / 2, 64, "center");
+        drawTextCursor(canvas.width / 2, canvas.height / 2, 64, document.getElementById("input").value, "center");
+
+        ctx.fillStyle = "black";
+        ctx.fillRect(canvas.width / 2 - 50, 50, 100, 100);
+        ctx.fillRect(0, 0, 100, 100);
+        ctx.fillRect(canvas.width - 100, 0, 100, 100);
+
+        ctx.restore();
+
+    } else {
+
+        ctx.fillStyle = 'black';
+        ctx.fillRect(50, 50, 100, 100);
+
+        ctx.restore();
+
+        drawText(text, 60, 200, 64);
+
+    }
     ctx.restore();
-
-    drawText(text, 60, 200);
 }
 
-update();
+init();
