@@ -9,7 +9,7 @@ const io = new Server(server);
 app.use(express.static("public")); // send client side html and js to the client on connect
 
 io.on('connection', (socket) => {
-    console.log('HELP SOMEONE IS CONNECTING AAAA');
+    console.log("HELP SOMEONE IS CONNECTING AAAA");
 
     socket.on("buttonPressed", () => {
         console.log("someone press button");
@@ -24,12 +24,19 @@ io.on('connection', (socket) => {
     });
 
     socket.on("disconnect", () => {
-        console.log('user disconnect');
+        console.log("user disconnect");
     });
 
     socket.on("username", (username) => {
-        console.log('user id' + socket.id + " set to " + username);
+        console.log("user id " + socket.id + " set to " + username);
         socket.username = username;
+    });
+
+    socket.on("sendmessage", (message) => {
+        io.emit("recievemessage", {
+            username: socket.username,
+            message: message
+        })
     });
 });
 

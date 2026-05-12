@@ -28,6 +28,7 @@ function drawText(text, x, y, fontsize, justify) {
     ctx.fillStyle = 'white';
 
     ctx.strokeStyle = 'black';
+    ctx.lineCap = 'round';
     ctx.lineWidth = 8;
 
     if (justify === "center") {
@@ -63,10 +64,24 @@ notletters = ["Backspace", "Enter", "Shift", "Control", "Alt", "Meta", "CapsLock
 
 document.addEventListener("keydown", (event) => {
     input.focus();
+
+    if (!userSet) {
+        if (event.key === "Enter") {
+            socket.emit("username", document.getElementById("input").value);
+            userSet = true;
+            username = document.getElementById("input").value;
+            document.getElementById("input").value = "";
+        }
+    } else {
+        if (event.key === "Enter") {
+            socket.emit("sendmessage", document.getElementById("input").value);
+            document.getElementById("input").value = "";
+        }
+    }
 });
 
-socket.on("changeText", (newText) => {
-    text = newText;
+socket.on("recievemessage", (data) => {
+    messages.push(data);
 });
 
 function update() {
@@ -77,8 +92,11 @@ function update() {
 var text = "yo";
 
 var userSet = false;
+var username = "";
 
 let input;
+
+let messages = [];
 
 function init() {
     input = document.createElement("input");
@@ -119,8 +137,15 @@ function render() {
 
         ctx.restore();
 
-        drawText(text, 60, 200, 64);
+        drawText("yo " + username, 60, 200, 64);
+        drawText(document.getElementById("input").value, canvas.width / 2, canvas.height / 2, 64, "center");
+        drawTextCursor(canvas.width / 2, canvas.height / 2, 64, document.getElementById("input").value, "center");
 
+        for (let i = 0; i < messages.length; i++) {
+            const message = messages[i];
+            const text = message.username + ": " + message.message;
+            drawText(text, 60, 300 + i * 75, 64);
+        }
     }
     ctx.restore();
 }
