@@ -68,9 +68,6 @@ document.addEventListener("keydown", (event) => {
     if (!userSet) {
         if (event.key === "Enter") {
             socket.emit("username", document.getElementById("input").value);
-            userSet = true;
-            username = document.getElementById("input").value;
-            document.getElementById("input").value = "";
         }
     } else {
         if (event.key === "Enter") {
@@ -82,6 +79,17 @@ document.addEventListener("keydown", (event) => {
 
 socket.on("recievemessage", (data) => {
     messages.push(data);
+    textY += 75;
+});
+
+socket.on("register", (tf,username) => {
+    if (!tf) {
+        alert("invalid: " + username);
+    } else {
+        userSet = true;
+        username = username;
+        document.getElementById("input").value = "";
+    }
 });
 
 function update() {
@@ -97,6 +105,8 @@ var username = "";
 let input;
 
 let messages = [];
+
+let textY = 0;
 
 function init() {
     input = document.createElement("input");
@@ -141,10 +151,12 @@ function render() {
         drawText(document.getElementById("input").value, canvas.width / 2, canvas.height / 2, 64, "center");
         drawTextCursor(canvas.width / 2, canvas.height / 2, 64, document.getElementById("input").value, "center");
 
+        textY = textY * 0.95;
+
         for (let i = messages.length; i > 0; i--) {
             const message = messages[i - 1];
             const text = message.username + ": " + message.message;
-            drawText(text, 60, canvas.height * 0.95 - (messages.length - i) * 75, 64);
+            drawText(text, 60, canvas.height * 0.95 - (messages.length - i) * 75 + textY, 64);
         }
     }
     ctx.restore();

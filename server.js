@@ -6,6 +6,8 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+const usernameRegex = /^[A-Za-z]+$/;
+
 app.use(express.static("public")); // send client side html and js to the client on connect
 
 io.on('connection', (socket) => {
@@ -28,8 +30,19 @@ io.on('connection', (socket) => {
     });
 
     socket.on("username", (username) => {
-        console.log("user id " + socket.id + " set to " + username);
-        socket.username = username;
+
+        if (!usernameRegex.test(username)) {
+            socket.emit("register", false, "invalid characters (only letters allowed, numbers and underscore allowed)");
+            return;
+        } else if (username.length > 20) {
+            socket.emit("register", false, "username too long");
+            return;
+        } else {
+            console.log("user id " + socket.id + " set to " + username);
+            socket.username = username;
+            socket.emit("register", true, username);
+        }
+
     });
 
     socket.on("sendmessage", (message) => {
