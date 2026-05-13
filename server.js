@@ -6,7 +6,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const usernameRegex = /^[A-Za-z]+$/;
+const usernameRegex = /^[A-Za-z0-9_]+$/;
 
 app.use(express.static("public")); // send client side html and js to the client on connect
 

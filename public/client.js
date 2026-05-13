@@ -69,11 +69,9 @@ document.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
             socket.emit("username", document.getElementById("input").value);
         }
-    } else {
-        if (event.key === "Enter") {
-            socket.emit("sendmessage", document.getElementById("input").value);
-            document.getElementById("input").value = "";
-        }
+    } else if (event.key === "Enter") {
+        socket.emit("sendmessage", document.getElementById("input").value);
+        document.getElementById("input").value = "";
     }
 });
 
