@@ -141,10 +141,10 @@ function render() {
         drawText(document.getElementById("input").value, canvas.width / 2, canvas.height / 2, 64, "center");
         drawTextCursor(canvas.width / 2, canvas.height / 2, 64, document.getElementById("input").value, "center");
 
-        for (let i = 0; i < messages.length; i++) {
-            const message = messages[i];
+        for (let i = messages.length; i > 0; i--) {
+            const message = messages[i - 1];
             const text = message.username + ": " + message.message;
-            drawText(text, 60, 300 + i * 75, 64);
+            drawText(text, 60, canvas.height * 0.95 - (messages.length - i) * 75, 64);
         }
     }
     ctx.restore();
