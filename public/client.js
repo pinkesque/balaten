@@ -28,6 +28,7 @@ function drawText(text, x, y, fontsize, justify) {
     ctx.fillStyle = 'white';
 
     ctx.strokeStyle = 'black';
+    ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     ctx.lineWidth = 8;
 
@@ -56,11 +57,22 @@ function drawTextCursor(x, y, fontsize, text, pos) {
     }
 }
 
+function drawButton(text, x, y, width, height, func) {
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 8;
+
+    ctx.fillRect(x, y, width, height);
+    ctx.strokeRect(x, y, width, height);
+
+    drawText(text, x + width / 2, y + height / 2 + 20, 64, "center");
+
+    // im stuck cause i want to add a button but i dont know how to check if the mouse is clicking it without using html elements and css :D
+}
+
 canvas.addEventListener("click", () => {
     input.focus();
 });
-
-notletters = ["Backspace", "Enter", "Shift", "Control", "Alt", "Meta", "CapsLock", "Tab", "Escape", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Dead", "AltGraph", "ContextMenu", "NumLock", "ScrollLock", "Pause", "Insert", "Home", "PageUp", "Delete", "End", "PageDown", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"];
 
 document.addEventListener("keydown", (event) => {
     input.focus();
@@ -80,12 +92,12 @@ socket.on("recievemessage", (data) => {
     textY += 75;
 });
 
-socket.on("register", (tf,username) => {
+socket.on("register", (tf,name) => {
     if (!tf) {
-        alert("invalid: " + username);
+        alert("invalid: " + name);
     } else {
         userSet = true;
-        username = username;
+        username = name;
         document.getElementById("input").value = "";
     }
 });
@@ -106,6 +118,11 @@ let messages = [];
 
 let textY = 0;
 
+let mouse = {
+    x: 0,
+    y: 0
+};
+
 function init() {
     input = document.createElement("input");
     input.id = "input"; 
@@ -122,7 +139,20 @@ function init() {
 
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     ctx.save();
+
+    ctx.fillStyle = "#511b7d";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.restore();
+
+    ctx.fillStyle = "black";
+    ctx.fillRect(canvas.width / 2 - 50, 50, 100, 100);
+    ctx.fillRect(0, 0, 100, 100);
+    ctx.fillRect(canvas.width - 100, 0, 100, 100);
+    ctx.fillRect(0, canvas.height - 100, 100, 100);
+    ctx.fillRect(canvas.width - 100, canvas.height - 100, 100, 100);
 
     if (!userSet) {
 
@@ -131,20 +161,11 @@ function render() {
         drawText(document.getElementById("input").value, canvas.width / 2, canvas.height / 2, 64, "center");
         drawTextCursor(canvas.width / 2, canvas.height / 2, 64, document.getElementById("input").value, "center");
 
-        ctx.fillStyle = "black";
-        ctx.fillRect(canvas.width / 2 - 50, 50, 100, 100);
-        ctx.fillRect(0, 0, 100, 100);
-        ctx.fillRect(canvas.width - 100, 0, 100, 100);
+        drawButton("play", canvas.width / 2 - 150, canvas.height / 2 + 100, 300, 100, "test");
 
         ctx.restore();
 
     } else {
-
-        ctx.fillStyle = 'black';
-        ctx.fillRect(50, 50, 100, 100);
-
-        ctx.restore();
-
         drawText("yo " + username, 60, 200, 64);
         drawText(document.getElementById("input").value, canvas.width / 2, canvas.height / 2, 64, "center");
         drawTextCursor(canvas.width / 2, canvas.height / 2, 64, document.getElementById("input").value, "center");
@@ -157,6 +178,7 @@ function render() {
             drawText(text, 60, canvas.height * 0.95 - (messages.length - i) * 75 + textY, 64);
         }
     }
+
     ctx.restore();
 }
 
