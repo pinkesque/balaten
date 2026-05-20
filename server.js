@@ -14,19 +14,15 @@ io.on('connection', (socket) => {
     console.log("HELP SOMEONE IS CONNECTING AAAA");
 
     socket.on("buttonPressed", () => {
-        console.log("someone press button");
-
-        io.emit("changeText", "omg it worked");
+        // what
     })
 
     socket.on("keypress", (key) => {
-        console.log("someone press key " + key);
-
-        io.emit("changeText", key);
+        // why do i even need this
     });
 
     socket.on("disconnect", () => {
-        console.log("user disconnect");
+        // code
     });
 
     socket.on("username", (username) => {
@@ -46,11 +42,18 @@ io.on('connection', (socket) => {
     });
 
     socket.on("sendmessage", (message) => {
+
+        if (message.length === 0) {
+            return;
+        }
+
         io.emit("recievemessage", {
             username: socket.username,
             message: message
         })
+
     });
+
 });
 
 server.listen(3000, () => {
