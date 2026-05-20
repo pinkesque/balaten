@@ -44,36 +44,41 @@ function drawText(text, x, y, fontsize, justify) {
     ctx.fillText(text, x, y);
 }
 
-function drawTextCursor(x, y, fontsize, text, pos) {
+function drawTextCursor(text, x, y, fontsize, justify, pos) {
     if (Math.floor(performance.now() / 500) % 2 === 0) {
-        const beforeCursor = text.substring(0, input.selectionStart);
+        const beforeCursor = text.substring(0, pos);
         ctx.font = fontsize + 'px funny';
 
-        const textWidth = ctx.measureText(text).width;
         const beforeWidth = ctx.measureText(beforeCursor).width;
 
+        if (justify === "center") {
+            x -= ctx.measureText(text).width / 2;
+        }
+
+        if (justify === "right") {
+            x -= ctx.measureText(text).width;
+        }
+
         ctx.fillStyle = "black";
-        ctx.fillRect(x - textWidth / 2 + beforeWidth - 2, y - fontsize + 8, 4, fontsize);
+        ctx.fillRect(x + beforeWidth - 2, y - fontsize + 8, 4, fontsize);
     }
 }
 
-function drawButton(text, x, y, width, height, func) {
+function drawButton(x, y, width, height, func) {
     ctx.fillStyle = "white";
     ctx.strokeStyle = "black";
     ctx.lineWidth = 8;
 
     ctx.fillRect(x, y, width, height);
     ctx.strokeRect(x, y, width, height);
-
-    drawText(text, x + width / 2, y + height / 2 + 20, 64, "center");
-
-    // im stuck cause i want to add a button but i dont know how to check if the mouse is clicking it without using html elements and css :D
 }
 
 const uiElements = [];
 
 class UIElement {
+
     constructor(x, y, width, height, justify, opacity) {
+
         this.x = x;
         this.y = y;
         this.width = width;
@@ -81,36 +86,79 @@ class UIElement {
         this.justify = justify;
 
         this.opacity = opacity;
+
     }
 
     contains(x, y) {
+
         return(
             x > this.x && 
             x < this.x + this.wdith &&
             y > this.y &&
             y < this.y + this.height
         );
+
     }
 }
 
 class Button extends UIElement {
+
     constructor(x, y, width, height, opacity, func) {
+
         super(x, y, width, height, opacity);
 
         this.type = "button";
         this.func = func;
+
     }
+
+    draw() {
+
+        drawButton(this.x, this.y, this.width, this.height, this.func);
+
+    }
+
 }
 
 class Text extends UIElement {
+
     constructor(text, x, y, opacity, fontsize, justify) {
+
         super(x, y, opacity);
 
         this.type = "text";
         this.text = text;
         this.fontsize = fontsize;
         this.justify = justify;
+
     }
+
+    draw() {
+
+        drawText(this.text?.(), this.x, this.y, this.fontsize, this.justify);
+
+    }
+
+}
+
+class TextField extends Text {
+
+    constructor(text, x, y, opacity, fontsize, justify, selectionPos) {
+
+        super(text, x, y, opacity, fontsize, justify);
+
+        this.selectionPos = selectionPos;
+
+    }
+
+    draw() {
+
+        super.draw();
+
+        drawTextCursor(this.text?.(), this.x, this.y, this.fontsize, this.justify, this.selectionPos?.());
+
+    }
+
 }
 
 canvas.addEventListener("click", () => {
@@ -128,6 +176,7 @@ document.addEventListener("keydown", (event) => {
         socket.emit("sendmessage", document.getElementById("input").value);
         document.getElementById("input").value = "";
     }
+
 });
 
 socket.on("recievemessage", (data) => {
@@ -167,6 +216,7 @@ let mouse = {
 };
 
 let inputText = "";
+let inputPos;
 
 function init() {
     input = document.createElement("input");
@@ -185,7 +235,16 @@ function init() {
 }
 
 function startMenu() {
-    const usernameInput = new Text(inputText, canvas.width / 2, canvas.height / 2, 100, 64, "center");
+
+    const usernameInput = new TextField(
+        () => inputText, 
+        canvas.width / 2, 
+        canvas.height / 2, 
+        100, 
+        64, 
+        "center",
+        () => input.selectionStart);
+
     uiElements.push(usernameInput)
 }
 
@@ -212,16 +271,17 @@ function render() {
         drawText("hello, what is your name :D", canvas.width / 2, canvas.height / 2 - 100, 64, "center");
 
         // drawText(inputText, canvas.width / 2, canvas.height / 2, 64, "center");
-        drawTextCursor(canvas.width / 2, canvas.height / 2, 64, document.getElementById("input").value, "center");
+        // drawTextCursor(canvas.width / 2, canvas.height / 2, 64, inputText, "center", () => input.selectionStart);
 
         drawButton("play", canvas.width / 2 - 150, canvas.height / 2 + 100, 300, 100, "test");
 
         ctx.restore();
 
     } else {
+
         drawText("yo " + username, 60, 200, 64);
-        drawText(document.getElementById("input").value, canvas.width / 2, canvas.height / 2, 64, "center");
-        drawTextCursor(canvas.width / 2, canvas.height / 2, 64, document.getElementById("input").value, "center");
+        // drawText(document.getElementById("input").value, canvas.width / 2, canvas.height / 2, 64, "center");
+        // drawTextCursor(canvas.width / 2, canvas.height / 2, 64, document.getElementById("input").value, "center");
 
         if (textY < 0.1) {
             textY = 0;
@@ -233,6 +293,7 @@ function render() {
             const message = messages[i - 1];
             const text = message.username + ": " + message.message;
             drawText(text, 60, canvas.height * 0.95 - (messages.length - i) * 75 + textY, 64);
+
         }
     }
 
@@ -240,9 +301,7 @@ function render() {
     ctx.save();
 
     for (const element of uiElements) {
-        if (element.type === "text") {
-            drawText(element.text, element.x, element.y, element.fontsize, element.justify);
-        }
+        element.draw();
     }
 }
 
