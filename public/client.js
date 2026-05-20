@@ -73,6 +73,15 @@ function drawButton(x, y, width, height, func) {
     ctx.strokeRect(x, y, width, height);
 }
 
+function resolve(value) {
+
+    if (typeof value === "function") {
+        return value();
+    }
+
+    return value;
+}
+
 const uiElements = [];
 
 class UIElement {
@@ -135,7 +144,7 @@ class Text extends UIElement {
 
     draw() {
 
-        drawText(this.text?.(), this.x, this.y, this.fontsize, this.justify);
+        drawText(resolve(this.text), this.x, this.y, this.fontsize, this.justify);
 
     }
 
@@ -155,7 +164,7 @@ class TextField extends Text {
 
         super.draw();
 
-        drawTextCursor(this.text?.(), this.x, this.y, this.fontsize, this.justify, this.selectionPos?.());
+        drawTextCursor(resolve(this.text), this.x, this.y, this.fontsize, this.justify, resolve(this.selectionPos));
 
     }
 
@@ -245,7 +254,15 @@ function startMenu() {
         "center",
         () => input.selectionStart);
 
-    uiElements.push(usernameInput)
+    const test = new Text(
+        "test", 
+        50, 
+        canvas.height / 2, 
+        100, 
+        64, 
+        "left");
+
+    uiElements.push(usernameInput, test)
 }
 
 function render() {
@@ -268,20 +285,13 @@ function render() {
 
     if (!userSet) {
 
-        drawText("hello, what is your name :D", canvas.width / 2, canvas.height / 2 - 100, 64, "center");
+        drawText("hello, what is your name :3", canvas.width / 2, canvas.height / 2 - 100, 64, "center");
 
-        // drawText(inputText, canvas.width / 2, canvas.height / 2, 64, "center");
-        // drawTextCursor(canvas.width / 2, canvas.height / 2, 64, inputText, "center", () => input.selectionStart);
-
-        drawButton("play", canvas.width / 2 - 150, canvas.height / 2 + 100, 300, 100, "test");
-
-        ctx.restore();
+        drawButton(canvas.width / 2 - 150, canvas.height / 2 + 100, 300, 100, "test");
 
     } else {
 
         drawText("yo " + username, 60, 200, 64);
-        // drawText(document.getElementById("input").value, canvas.width / 2, canvas.height / 2, 64, "center");
-        // drawTextCursor(canvas.width / 2, canvas.height / 2, 64, document.getElementById("input").value, "center");
 
         if (textY < 0.1) {
             textY = 0;

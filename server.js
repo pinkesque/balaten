@@ -11,7 +11,6 @@ const usernameRegex = /^[A-Za-z0-9_]+$/;
 app.use(express.static("public")); // send client side html and js to the client on connect
 
 io.on('connection', (socket) => {
-    console.log("HELP SOMEONE IS CONNECTING AAAA");
 
     socket.on("buttonPressed", () => {
         // what
@@ -51,6 +50,8 @@ io.on('connection', (socket) => {
             username: socket.username,
             message: message
         })
+
+        console.log("user id " + socket.id + " (" + socket.username + ") sent message " + message);
 
     });
 
