@@ -27,15 +27,21 @@ io.on('connection', (socket) => {
     socket.on("username", (username) => {
 
         if (!usernameRegex.test(username)) {
-            socket.emit("register", false, "invalid characters (only letters allowed, numbers and underscore allowed)");
+            socket.emit("register", false, "invalid characters (only letters, numbers and underscore allowed)");
             return;
         } else if (username.length > 20) {
-            socket.emit("register", false, "username too long");
+            socket.emit("register", false, "username too long (max 20 characters)");
             return;
         } else {
             console.log("user id " + socket.id + " set to " + username);
             socket.username = username;
             socket.emit("register", true, username);
+            for (const message of messages) {
+                socket.emit("recievemessage", {
+                    username: message.username,
+                    message: message.message}
+                )
+            }
         }
 
     });
@@ -46,12 +52,16 @@ io.on('connection', (socket) => {
             return;
         }
 
+        let filtered = censor(message, censorlist);
+
         io.emit("recievemessage", {
             username: socket.username,
-            message: message
+            message: filtered
         })
 
-        console.log("user id " + socket.id + " (" + socket.username + ") sent message " + message);
+        console.log(socket.username + ": " + message);
+
+        messages.push({username: socket.username, message: filtered})
 
     });
 
@@ -60,6 +70,25 @@ io.on('connection', (socket) => {
 server.listen(3000, () => {
     console.log('listening on *:3000');
 });
+
+let messages = [];
+
+const censorlist = [
+    "nigger",
+    "nigga",
+    "negro",
+    "faggot"
+];
+
+function censor(text, banned) {
+    for (const word of banned) {
+        const regex = new RegExp(word, "gi")
+
+        text = text.replace(regex, match => "*".repeat(match.length))
+    }
+
+    return text;
+}
 
 // game state
 let games = [];

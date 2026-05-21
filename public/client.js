@@ -30,7 +30,7 @@ function drawText(text, x, y, fontsize, justify) {
     ctx.strokeStyle = 'black';
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    ctx.lineWidth = 8;
+    ctx.lineWidth = fontsize / 8;
 
     if (justify === "center") {
         x -= ctx.measureText(text).width / 2;
@@ -64,10 +64,18 @@ function drawTextCursor(text, x, y, fontsize, justify, pos) {
     }
 }
 
-function drawButton(x, y, width, height, func) {
+function drawButton(x, y, width, height, func, justify) {
     ctx.fillStyle = "white";
     ctx.strokeStyle = "black";
     ctx.lineWidth = 8;
+
+    if (justify === "center") {
+        x -= width / 2;
+    }
+
+    if (justify === "right") {
+        x -= width;
+    }
 
     ctx.fillRect(x, y, width, height);
     ctx.strokeRect(x, y, width, height);
@@ -82,12 +90,24 @@ function resolve(value) {
     return value;
 }
 
-const uiElements = [];
+function removeUI(name) {
+
+    const index = uiElements.findIndex(
+        e => e.name === name
+    );
+
+    if (index !== -1) {
+        uiElements[index].active = false;
+    }
+}
+
+let uiElements = [];
 
 class UIElement {
 
-    constructor(x, y, width, height, justify, opacity) {
+    constructor(name, x, y, opacity, width, height, justify) {
 
+        this.name = name;
         this.x = x;
         this.y = y;
         this.width = width;
@@ -95,14 +115,23 @@ class UIElement {
         this.justify = justify;
 
         this.opacity = opacity;
+        this.active = true;
 
     }
 
     contains(x, y) {
 
+        if (this.justify === "center") {
+            x += this.width / 2;
+        }
+
+        if (this.justify === "right") {
+            x += this.width;
+        }
+
         return(
             x > this.x && 
-            x < this.x + this.wdith &&
+            x < this.x + this.width &&
             y > this.y &&
             y < this.y + this.height
         );
@@ -112,9 +141,9 @@ class UIElement {
 
 class Button extends UIElement {
 
-    constructor(x, y, width, height, opacity, func) {
+    constructor(name, x, y, width, height, justify, opacity, func) {
 
-        super(x, y, width, height, opacity);
+        super(name, x, y, width, height, justify, opacity);
 
         this.type = "button";
         this.func = func;
@@ -123,7 +152,13 @@ class Button extends UIElement {
 
     draw() {
 
-        drawButton(this.x, this.y, this.width, this.height, this.func);
+        drawButton(this.x, this.y, this.width, this.height, this.func, this.justify);
+
+    }
+
+    onClick() {
+
+        this.func();
 
     }
 
@@ -131,9 +166,9 @@ class Button extends UIElement {
 
 class Text extends UIElement {
 
-    constructor(text, x, y, opacity, fontsize, justify) {
+    constructor(name, text, x, y, opacity, fontsize, justify) {
 
-        super(x, y, opacity);
+        super(name, x, y, opacity);
 
         this.type = "text";
         this.text = text;
@@ -152,9 +187,9 @@ class Text extends UIElement {
 
 class TextField extends Text {
 
-    constructor(text, x, y, opacity, fontsize, justify, selectionPos) {
+    constructor(name, text, x, y, opacity, fontsize, justify, selectionPos) {
 
-        super(text, x, y, opacity, fontsize, justify);
+        super(name, text, x, y, opacity, fontsize, justify);
 
         this.selectionPos = selectionPos;
 
@@ -170,27 +205,56 @@ class TextField extends Text {
 
 }
 
-canvas.addEventListener("click", () => {
-    input.focus();
+canvas.addEventListener("mousemove", () => {
+    mouse = {
+        x: event.x,
+        y: event.y
+    }
+});
+
+canvas.addEventListener("mousedown", () => {
+    vinput.focus();
+
+    for (const element of uiElements) {
+        if (element.type === "button" && element.contains(mouse.x, mouse.y)) {
+            element.onClick();
+        }
+    }   
 });
 
 document.addEventListener("keydown", (event) => {
-    input.focus();
+    vinput.focus();
 
     if (!userSet) {
         if (event.key === "Enter") {
-            socket.emit("username", document.getElementById("input").value);
+            socket.emit("username", document.getElementById("vinput").value);
         }
     } else if (event.key === "Enter") {
-        socket.emit("sendmessage", document.getElementById("input").value);
-        document.getElementById("input").value = "";
+        socket.emit("sendmessage", document.getElementById("vinput").value);
+        document.getElementById("vinput").value = "";
+    }
+
+    if (event.key === "ArrowUp") {
+        textOffset += 1;
+        if (textOffset > messages.length - 1) textOffset = messages.length - 1;
+    }
+    
+    if (event.key === "ArrowDown") {
+        textOffset -= 1;
+        if (textOffset < 0) textOffset = 0;
     }
 
 });
 
+document.addEventListener("wheel", e => {
+    textOffset -= e.deltaY / 25;
+    if (textOffset < 0) textOffset = 0;
+    if (textOffset > messages.length - 1) textOffset = messages.length - 1;
+})
+
 socket.on("recievemessage", (data) => {
     messages.push(data);
-    textY += 75;
+    textY += 50;
 });
 
 socket.on("register", (tf,name) => {
@@ -199,7 +263,8 @@ socket.on("register", (tf,name) => {
     } else {
         userSet = true;
         username = name;
-        document.getElementById("input").value = "";
+        document.getElementById("vinput").value = "";
+        mainMenu();
     }
 });
 
@@ -213,11 +278,12 @@ var text = "yo";
 var userSet = false;
 var username = "";
 
-let input;
+let vinput;
 
 let messages = [];
 
 let textY = 0;
+let textOffset = 0;
 
 let mouse = {
     x: 0,
@@ -228,15 +294,16 @@ let inputText = "";
 let inputPos;
 
 function init() {
-    input = document.createElement("input");
-    input.id = "input"; 
-    input.type = "text";
-    input.style.position = "absolute";
-    input.style.left = "-9999px";
-    input.style.top = "-9999px";
-    input.value = "";
-    document.body.appendChild(input);
-    input.focus();
+    vinput = document.createElement("input");
+    vinput.id = "vinput"; 
+    vinput.type = "text";
+    vinput.style.position = "absolute";
+    vinput.style.left = "-9999px";
+    vinput.style.top = "-9999px";
+    vinput.value = "";
+    vinput.autocomplete = false;
+    document.body.appendChild(vinput);
+    vinput.focus();
 
     startMenu();
 
@@ -246,28 +313,61 @@ function init() {
 function startMenu() {
 
     const usernameInput = new TextField(
-        () => inputText, 
+        "usernameInput",
+        () => 
+            inputText, 
         canvas.width / 2, 
         canvas.height / 2, 
-        100, 
+        1, 
         64, 
         "center",
-        () => input.selectionStart);
+        () => vinput.selectionStart);
 
-    const test = new Text(
-        "test", 
-        50, 
-        canvas.height / 2, 
-        100, 
+    const hello = new Text(
+        "hello",
+        "hello what is your name :3", 
+        canvas.width / 2, 
+        canvas.height / 2 - 100, 
+        1, 
         64, 
-        "left");
+        "center");
 
-    uiElements.push(usernameInput, test)
+    const usernameButton = new Button(
+        "usernameButton",
+        canvas.width / 2,
+        canvas.height / 2 + 100,
+        100,
+        250,
+        100,
+        "center",
+        () => socket.emit("username", document.getElementById("vinput").value)
+    )
+
+    uiElements.push(usernameInput, hello, usernameButton)
+}
+
+function mainMenu() {
+    console.log("main menu called")
+    removeUI("hello");
+    removeUI("usernameInput");
+    removeUI("usernameButton")
+
+    const textInput = new TextField(
+        "textInput",
+        () => inputText, 
+        30, 
+        canvas.height - 30, 
+        1, 
+        48, 
+        "left",
+        () => vinput.selectionStart);
+
+    uiElements.push(textInput)
 }
 
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    inputText = document.getElementById("input").value;
+    inputText = document.getElementById("vinput").value;
 
     ctx.save();
 
@@ -276,33 +376,44 @@ function render() {
 
     ctx.restore();
 
-    ctx.fillStyle = "black";
-    ctx.fillRect(canvas.width / 2 - 50, 50, 100, 100);
-    ctx.fillRect(0, 0, 100, 100);
-    ctx.fillRect(canvas.width - 100, 0, 100, 100);
-    ctx.fillRect(0, canvas.height - 100, 100, 100);
-    ctx.fillRect(canvas.width - 100, canvas.height - 100, 100, 100);
+    if (false) {
+        ctx.fillStyle = "black";
+        ctx.fillRect(canvas.width / 2 - 50, 50, 100, 100);
+        ctx.fillRect(0, 0, 100, 100);
+        ctx.fillRect(canvas.width - 100, 0, 100, 100);
+        ctx.fillRect(0, canvas.height - 100, 100, 100);
+        ctx.fillRect(canvas.width - 100, canvas.height - 100, 100, 100);
+    }
 
-    if (!userSet) {
+    if (userSet) {
 
-        drawText("hello, what is your name :3", canvas.width / 2, canvas.height / 2 - 100, 64, "center");
+        let fs = 48;
+        desiredY = fs * textOffset;
 
-        drawButton(canvas.width / 2 - 150, canvas.height / 2 + 100, 300, 100, "test");
+        if (textY < fs * textOffset) {
 
-    } else {
+            textY -= (textY - desiredY) * 0.175;
 
-        drawText("yo " + username, 60, 200, 64);
+            if (textY > fs * textOffset) {
+                textY = fs * textOffset
+            }
 
-        if (textY < 0.1) {
-            textY = 0;
-        } else {
-            textY = textY * 0.9;
+        } else if (textY > fs * textOffset) {
+
+            textY += (desiredY - textY) * 0.175;
+
+            if (textY < fs * textOffset) {
+                textY = fs * textOffset
+            }
+            
         }
+
+        console.log(textY)
 
         for (let i = messages.length; i > 0; i--) {
             const message = messages[i - 1];
             const text = message.username + ": " + message.message;
-            drawText(text, 60, canvas.height * 0.95 - (messages.length - i) * 75 + textY, 64);
+            drawText(text, 30, canvas.height - (messages.length - i + 2) * fs + textY, fs);
 
         }
     }
@@ -311,8 +422,16 @@ function render() {
     ctx.save();
 
     for (const element of uiElements) {
-        element.draw();
+        if (element.opacity > 0) {
+            ctx.globalAlpha = element.opacity
+
+            element.draw();
+        }
     }
+
+    uiElements = uiElements.filter(
+        e => e.active
+    );
 }
 
 init();
