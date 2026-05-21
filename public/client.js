@@ -247,7 +247,7 @@ document.addEventListener("keydown", (event) => {
 });
 
 document.addEventListener("wheel", e => {
-    textOffset -= e.deltaY / 25;
+    textOffset -= e.deltaY / 100;
     if (textOffset < 0) textOffset = 0;
     if (textOffset > messages.length - 1) textOffset = messages.length - 1;
 })
@@ -289,6 +289,8 @@ let mouse = {
     x: 0,
     y: 0
 };
+
+let chatOpen = false;
 
 let inputText = "";
 let inputPos;
@@ -348,10 +350,39 @@ function startMenu() {
 
 function mainMenu() {
     console.log("main menu called")
-    removeUI("hello");
-    removeUI("usernameInput");
-    removeUI("usernameButton")
+    // removeUI("hello");
+    // removeUI("usernameInput");
+    // removeUI("usernameButton")
 
+    uiElements.length = 0;
+
+    const playButton = new Button(
+        "playButton",
+        canvas.width / 2,
+        canvas.height / 2 + 100,
+        100,
+        250,
+        100,
+        "center",
+        () => playMenu()
+    )
+
+    const chatButton = new Button(
+        "chatButton",
+        100,
+        canvas.height / 2 + 100,
+        100,
+        250,
+        100,
+        "left",
+        () => chatMenu()
+    )
+
+    uiElements.push(chatButton, playButton)
+}
+
+function chatMenu() {
+    
     const textInput = new TextField(
         "textInput",
         () => inputText, 
@@ -362,7 +393,24 @@ function mainMenu() {
         "left",
         () => vinput.selectionStart);
 
+    chatOpen = true;
+
     uiElements.push(textInput)
+}
+
+function playMenu() {
+
+    const playTitle = new Text(
+        "playTitle",
+        "hi you're playing i think", 
+        canvas.width / 2, 
+        100, 
+        1, 
+        64, 
+        "center"
+    )
+
+    uiElements.push(playTitle)
 }
 
 function render() {
@@ -385,7 +433,7 @@ function render() {
         ctx.fillRect(canvas.width - 100, canvas.height - 100, 100, 100);
     }
 
-    if (userSet) {
+    if (chatOpen) {
 
         let fs = 48;
         desiredY = fs * textOffset;
