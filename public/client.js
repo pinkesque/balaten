@@ -231,8 +231,6 @@ class Button extends UIElement {
         this.texty = () => resolve(this.y) + resolve(this.fontsize) + 5;
         this.textjustify = text.justify ?? this.justify;
 
-        console.log(this.textx)
-
     }
 
     draw() {
@@ -628,8 +626,6 @@ function render() {
             }
             
         }
-
-        console.log(textY)
 
         for (let i = messages.length; i > 0; i--) {
             const message = messages[i - 1];

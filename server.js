@@ -36,12 +36,14 @@ io.on('connection', (socket) => {
             console.log("user id " + socket.id + " set to " + username);
             socket.username = username;
             socket.emit("register", true, username);
+
             for (const message of messages) {
                 socket.emit("recievemessage", {
                     username: message.username,
                     message: message.message}
                 )
             }
+            
         }
 
     });
