@@ -584,5 +584,3 @@ function render() {
 }
 
 init();
-
-// this is my code that i haven't commited
