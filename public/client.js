@@ -105,16 +105,29 @@ let uiElements = [];
 
 class UIElement {
 
-    constructor(name, x, y, opacity, width, height, justify) {
+    constructor(
+        name, 
+        pos = {}, 
+        size = {},
+        composite = {}
+    ) {
 
         this.name = name;
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.justify = justify;
 
-        this.opacity = opacity;
+        this.x = pos.x ?? 0;
+        this.y = pos.y ?? 0;
+        this.angle = pos.angle ?? 0;
+        this.justify = pos.justify ?? "left";
+
+        this.prevX = this.x;
+        this.prevY = this.y;
+        this.prevAngle = pos.angle ?? 0;
+
+        this.size = size.size ?? false;
+        this.width = size.width ?? 0;
+        this.height = size.height ?? 0;
+
+        this.opacity = composite.opacity ?? 1;
         this.active = true;
 
     }
@@ -141,9 +154,15 @@ class UIElement {
 
 class Button extends UIElement {
 
-    constructor(name, x, y, width, height, justify, opacity, func) {
+    constructor(
+        name, 
+        pos = {}, 
+        size = {}, 
+        composite = {}, 
+        func
+    ) {
 
-        super(name, x, y, width, height, justify, opacity);
+        super(name, pos, size, composite);
 
         this.type = "button";
         this.func = func;
@@ -166,14 +185,18 @@ class Button extends UIElement {
 
 class Text extends UIElement {
 
-    constructor(name, text, x, y, opacity, fontsize, justify) {
+    constructor(
+        name, 
+        text = {}, 
+        pos = {},
+        composite = {}
+    ) {
 
-        super(name, x, y, opacity);
+        super(name, pos, composite);
 
         this.type = "text";
-        this.text = text;
-        this.fontsize = fontsize;
-        this.justify = justify;
+        this.text = text.text;
+        this.fontsize = text.fontsize;
 
     }
 
@@ -187,11 +210,16 @@ class Text extends UIElement {
 
 class TextField extends Text {
 
-    constructor(name, text, x, y, opacity, fontsize, justify, selectionPos) {
+    constructor(
+        name, 
+        text = {}, 
+        pos = {}, 
+        composite = {}
+    ) {
 
-        super(name, text, x, y, opacity, fontsize, justify);
+        super(name, text, pos, composite);
 
-        this.selectionPos = selectionPos;
+        this.selectionPos = text.selectionPos;
 
     }
 
@@ -316,32 +344,64 @@ function startMenu() {
 
     const usernameInput = new TextField(
         "usernameInput",
-        () => 
-            inputText, 
-        canvas.width / 2, 
-        canvas.height / 2, 
-        1, 
-        64, 
-        "center",
-        () => vinput.selectionStart);
+
+        {
+            text: () => inputText,
+            fontsize: 64,
+            selectionPos: () => vinput.selectionStart
+        },
+
+        {
+            x: canvas.width / 2, 
+            y: canvas.height / 2,
+            justify: "center"
+        },
+
+        {
+            opacity: 1
+        }
+    )
 
     const hello = new Text(
+
         "hello",
-        "hello what is your name :3", 
-        canvas.width / 2, 
-        canvas.height / 2 - 100, 
-        1, 
-        64, 
-        "center");
+
+        {
+            text: "hello what is your name :3",
+            fontsize: 64,
+            selectionPos: () => vinput.selectionStart
+        },
+
+        {
+            x: canvas.width / 2, 
+            y: canvas.height / 2 - 100,
+            justify: "center"
+        },
+
+        {
+            opacity: 1
+        }
+    )
 
     const usernameButton = new Button(
+
         "usernameButton",
-        canvas.width / 2,
-        canvas.height / 2 + 100,
-        100,
-        250,
-        100,
-        "center",
+
+        {
+            x: canvas.width / 2, 
+            y: canvas.height / 2 + 100,
+            justify: "center"
+        },
+
+        {
+            width: 250,
+            height: 100
+        },
+
+        {
+            opacity: 1
+        },
+
         () => socket.emit("username", document.getElementById("vinput").value)
     )
 
@@ -350,31 +410,51 @@ function startMenu() {
 
 function mainMenu() {
     console.log("main menu called")
-    // removeUI("hello");
-    // removeUI("usernameInput");
-    // removeUI("usernameButton")
 
     uiElements.length = 0;
 
     const playButton = new Button(
+
         "playButton",
-        canvas.width / 2,
-        canvas.height / 2 + 100,
-        100,
-        250,
-        100,
-        "center",
+
+        {
+            x: canvas.width / 2,
+            y: canvas.height / 2 + 100,
+            justify: "center"
+
+        },
+
+        {
+            width: 250,
+            height: 100
+        },
+
+        {
+            opacity: 1
+        },
+
         () => playMenu()
     )
 
     const chatButton = new Button(
+
         "chatButton",
-        100,
-        canvas.height / 2 + 100,
-        100,
-        250,
-        100,
-        "left",
+
+        {
+            x: 100,
+            y: canvas.height / 2 + 100,
+            justify: "left"
+        },
+
+        {
+            width: 250,
+            height: 100
+        },
+
+        {
+            opacity: 1
+        },
+
         () => chatMenu()
     )
 
@@ -384,14 +464,25 @@ function mainMenu() {
 function chatMenu() {
     
     const textInput = new TextField(
+
         "textInput",
-        () => inputText, 
-        30, 
-        canvas.height - 30, 
-        1, 
-        48, 
-        "left",
-        () => vinput.selectionStart);
+
+        {
+            text: () => inputText,
+            fontsize: 48,
+            selectionPos: () => vinput.selectionStart
+        },
+
+        {
+            x: 30,
+            y: canvas.height - 30,
+            justify: "left"
+        },
+
+        {
+            opacity: 1
+        }
+    );
 
     chatOpen = true;
 
@@ -401,13 +492,23 @@ function chatMenu() {
 function playMenu() {
 
     const playTitle = new Text(
+
         "playTitle",
-        "hi you're playing i think", 
-        canvas.width / 2, 
-        100, 
-        1, 
-        64, 
-        "center"
+
+        {
+            text: "hi you're playing i think",
+            fontsize: 64
+        },
+
+        {
+            x: canvas.width / 2,
+            y: 100,
+            justify: "center"
+        },
+        
+        {
+            opacity: 1
+        }
     )
 
     uiElements.push(playTitle)
@@ -483,3 +584,5 @@ function render() {
 }
 
 init();
+
+// this is my code that i haven't commited
