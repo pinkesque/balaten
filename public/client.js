@@ -13,8 +13,8 @@ function resize() {
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 	
-	canvas.style.width = window.innerWidth + "px",
-	canvas.style.height = window.innerHeight + "px"
+	canvas.style.width = window.innerWidth + "px";
+	canvas.style.height = window.innerHeight + "px";
 	
 	// ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
@@ -134,53 +134,28 @@ class UIElement {
 
     contains(x, y) {
 
+        let rx = resolve(this.x);
+        let ry = resolve(this.y);
+
+        let rw = resolve(this.width);
+        let rh = resolve(this.height);
+
         if (this.justify === "center") {
-            x += this.width / 2;
+            rx -= rw / 2;
         }
 
         if (this.justify === "right") {
-            x += this.width;
+            rx -= rw;
         }
 
         return(
-            x > this.x && 
-            x < this.x + this.width &&
-            y > this.y &&
-            y < this.y + this.height
+            x > rx && 
+            x < rx + rw &&
+            y > ry &&
+            y < ry + rh
         );
 
     }
-}
-
-class Button extends UIElement {
-
-    constructor(
-        name, 
-        pos = {}, 
-        size = {}, 
-        composite = {}, 
-        func
-    ) {
-
-        super(name, pos, size, composite);
-
-        this.type = "button";
-        this.func = func;
-
-    }
-
-    draw() {
-
-        drawButton(this.x, this.y, this.width, this.height, this.func, this.justify);
-
-    }
-
-    onClick() {
-
-        this.func();
-
-    }
-
 }
 
 class Text extends UIElement {
@@ -202,7 +177,7 @@ class Text extends UIElement {
 
     draw() {
 
-        drawText(resolve(this.text), this.x, this.y, this.fontsize, this.justify);
+        drawText(resolve(this.text), resolve(this.x), resolve(this.y), resolve(this.fontsize), this.justify);
 
     }
 
@@ -227,7 +202,58 @@ class TextField extends Text {
 
         super.draw();
 
-        drawTextCursor(resolve(this.text), this.x, this.y, this.fontsize, this.justify, resolve(this.selectionPos));
+        drawTextCursor(resolve(this.text), resolve(this.x), resolve(this.y), resolve(this.fontsize), this.justify, resolve(this.selectionPos));
+
+    }
+
+}
+
+class Button extends UIElement {
+
+    constructor(
+        name, 
+        pos = {}, 
+        size = {}, 
+        text = {},
+        composite = {}, 
+        func
+    ) {
+
+        super(name, pos, size, composite);
+
+        this.type = "button";
+        this.func = func;
+
+        this.text = text.text;
+        this.fontsize = text.fontsize;
+
+        this.textx = () => resolve(this.x);
+        this.texty = () => resolve(this.y) + resolve(this.fontsize) + 5;
+        this.textjustify = text.justify ?? this.justify;
+
+        console.log(this.textx)
+
+    }
+
+    draw() {
+
+        drawButton(resolve(this.x), resolve(this.y), resolve(this.width), resolve(this.height), this.func, this.justify);
+
+        let nx = resolve(this.textx);
+
+        if (this.justify === "left") {
+            nx += resolve(this.width) / 2;
+        } else if (this.justify === "right") {
+            nx -= resolve(this.width) / 2;
+        }
+
+        drawText(resolve(this.text), nx, resolve(this.texty), resolve(this.fontsize), this.textjustify);
+
+    }
+
+    onClick() {
+
+        this.func();
 
     }
 
@@ -352,8 +378,8 @@ function startMenu() {
         },
 
         {
-            x: canvas.width / 2, 
-            y: canvas.height / 2,
+            x: () => canvas.width / 2, 
+            y: () => canvas.height / 2,
             justify: "center"
         },
 
@@ -373,8 +399,8 @@ function startMenu() {
         },
 
         {
-            x: canvas.width / 2, 
-            y: canvas.height / 2 - 100,
+            x: () => canvas.width / 2, 
+            y: () => canvas.height / 2 - 100,
             justify: "center"
         },
 
@@ -388,14 +414,20 @@ function startMenu() {
         "usernameButton",
 
         {
-            x: canvas.width / 2, 
-            y: canvas.height / 2 + 100,
+            x: () => canvas.width / 2, 
+            y: () => canvas.height / 2 + 100,
             justify: "center"
         },
 
         {
             width: 250,
             height: 100
+        },
+
+        {
+            text: "hello",
+            fontsize: 64,
+            justify: "center"
         },
 
         {
@@ -418,8 +450,8 @@ function mainMenu() {
         "playButton",
 
         {
-            x: canvas.width / 2,
-            y: canvas.height / 2 + 100,
+            x: () => canvas.width / 2,
+            y: () => canvas.height / 2 + 100,
             justify: "center"
 
         },
@@ -427,6 +459,12 @@ function mainMenu() {
         {
             width: 250,
             height: 100
+        },
+
+        {
+            text: "play",
+            fontsize: 64,
+            justify: "center"
         },
 
         {
@@ -442,7 +480,7 @@ function mainMenu() {
 
         {
             x: 100,
-            y: canvas.height / 2 + 100,
+            y: () => canvas.height / 2 + 100,
             justify: "left"
         },
 
@@ -452,13 +490,47 @@ function mainMenu() {
         },
 
         {
+            text: "chat",
+            fontsize: 64,
+            justify: "center"
+        },
+
+        {
             opacity: 1
         },
 
         () => chatMenu()
     )
 
-    uiElements.push(chatButton, playButton)
+    const fuckyoubutton = new Button(
+
+        "fuckyoubutton",
+
+        {
+            x: () => canvas.width - 100,
+            y: () => canvas.height / 2 + 100,
+            justify: "right"
+        },
+
+        {
+            width: 250,
+            height: 100
+        },
+
+        {
+            text: "fuck you",
+            fontsize: 64,
+            justify: "center"
+        },
+
+        {
+            opacity: 1
+        },
+
+        () => console.log("fuck you")
+    )
+
+    uiElements.push(chatButton, playButton, fuckyoubutton)
 }
 
 function chatMenu() {
@@ -475,7 +547,7 @@ function chatMenu() {
 
         {
             x: 30,
-            y: canvas.height - 30,
+            y: () => canvas.height - 30,
             justify: "left"
         },
 
@@ -501,7 +573,7 @@ function playMenu() {
         },
 
         {
-            x: canvas.width / 2,
+            x: () => canvas.width / 2,
             y: 100,
             justify: "center"
         },
