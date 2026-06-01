@@ -324,6 +324,11 @@ export function playMenu() {
                     {
                         name: server.id,
 
+                        pos: {
+                            x: 0,
+                            y: 0
+                        },
+
                         text: {
                             text: server.name,
                             fontsize: 32,

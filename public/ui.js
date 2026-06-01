@@ -100,10 +100,32 @@ export class UIElement {
         this.active = true;
 
         this.children = options.children ?? [];
+        this.parent = null;
 
     }
 
+    getGlobalX() {
+        let x = resolve(this.x);
+
+        if (this.parent) {
+            x += this.parent.getGlobalX();
+        };
+
+        return x;
+    }
+
+    getGlobalY() {
+        let y = resolve(this.y);
+
+        if (this.parent) {
+            y += this.parent.getGlobalY();
+        }
+
+        return y;
+    }
+
     addChild(child) {
+        child.parent = this;
         this.children.push(child)
     }
     
@@ -111,14 +133,15 @@ export class UIElement {
         const index = this.children.indexOf(child)
 
         if (index !== -1) {
+            child.parent = null;
             this.children.splice(index, 1)
         }
     }
 
     contains(x, y) {
 
-        let rx = resolve(this.x);
-        let ry = resolve(this.y);
+        let rx = this.getGlobalX();
+        let ry = this.getGlobalY();
 
         let rw = resolve(this.width);
         let rh = resolve(this.height);
@@ -172,7 +195,7 @@ export class Text extends UIElement {
 
     draw() {
 
-        drawText(resolve(this.text), resolve(this.x), resolve(this.y), resolve(this.fontsize), this.justify);
+        drawText(resolve(this.text), this.getGlobalX(), this.getGlobalY(), resolve(this.fontsize), this.justify);
 
     }
 
@@ -196,7 +219,7 @@ export class TextField extends Text {
 
         super.draw();
 
-        drawTextCursor(resolve(this.text), resolve(this.x), resolve(this.y), resolve(this.fontsize), this.justify, resolve(this.selectionPos));
+        drawTextCursor(resolve(this.text), this.getGlobalX(), this.getGlobalY(), resolve(this.fontsize), this.justify, resolve(this.selectionPos));
 
     }
 
@@ -217,15 +240,15 @@ export class Button extends UIElement {
         this.text = options.text?.text;
         this.fontsize = options.text?.fontsize;
 
-        this.textx = () => resolve(this.x);
-        this.texty = () => resolve(this.y) + resolve(this.fontsize) + 5;
+        this.textx = () => this.getGlobalX();
+        this.texty = () => this.getGlobalY() + resolve(this.fontsize) + 5;
         this.textjustify = options.text?.justify ?? this.justify;
 
     }
 
     draw() {
 
-        drawButton(resolve(this.x), resolve(this.y), resolve(this.width), resolve(this.height), this.func, this.justify);
+        drawButton(this.getGlobalX(), this.getGlobalY(), resolve(this.width), resolve(this.height), this.func, this.justify);
 
         let nx = resolve(this.textx);
 
@@ -258,28 +281,45 @@ export class List extends UIElement {
 
         this.layout = options.layout?.direction ?? "vertical"
         this.spacing = options.layout?.spacing ?? 50
-        this.data = options.data ?? []
+        this._data = options.data ?? []
 
         this.template = options.template
+
+        this.rebuild()
     }
 
-    buildChildren() {
-        return this.data.map(this.template)
+    get data() {
+        return this._data
     }
 
-    draw() {
-        let x = resolve(this.x)
-        let y = resolve(this.y)
+    set data(value) {
+        this._data = value
+        this.rebuild()
+    }
 
-        const generated = this.buildChildren()
+    rebuild() {
+        this.children = [];
 
-        for (const child of generated) {
-            child.x = x
-            child.y = y
+        for (const [index, item] of this.data.entries()) {
+            const child = this.template(item, index)
 
-            child.render();
+            child.y = index * (resolve(child.height) + resolve(this.spacing))
 
-            y += resolve(child.height) + resolve(this.spacing)
+            this.addChild(child);
         }
     }
+
+    add(item) {
+        this._data.push(item)
+        this.rebuild()
+    }
+
+    remove(item) {
+        this._data = this._data.filer(
+            item => item.id !== id
+        )
+        this.rebuild()
+    }
+
+    draw() {}
 }
