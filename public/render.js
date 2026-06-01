@@ -80,7 +80,7 @@ export function render() {
         if (element.opacity > 0) {
             ctx.globalAlpha = element.opacity
 
-            element.draw();
+            element.render();
         }
     }
 

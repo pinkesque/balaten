@@ -14,5 +14,7 @@ export const vars = {
     textOffset: 0,
 
     userSet: false,
-    username: ""
+    username: "",
+
+    serverList: []
 }

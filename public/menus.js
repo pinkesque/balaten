@@ -1,6 +1,6 @@
-import { UIElement, Text, TextField, Button } from "./ui.js"
+import { UIElement, Text, TextField, Button, List } from "./ui.js"
 import { vars, canvas, ctx, uiElements } from "./state.js"
-import { socket } from "./network.js"
+import { socket, serverSearch } from "./network.js"
 
 export function startMenu() {
 
@@ -176,6 +176,8 @@ export function mainMenu() {
 }
 
 export function chatMenu() {
+
+    uiElements.length = 0;
     
     const textInput = new TextField(
         {
@@ -199,12 +201,47 @@ export function chatMenu() {
         }
     );
 
+    const backbutton = new Button(
+        {
+            name: "backbutton",
+
+            pos: {
+                x: 25,
+                y: 25,
+                justify: "left"
+            },
+
+            size: {
+                width: 200,
+                height: 75
+            },
+
+            text: {
+                text: "↩ back",
+                fontsize: 48,
+                justify: "center"
+            },
+
+            composite: {
+                opacity: 1
+            },
+
+            func: () => {
+                mainMenu() 
+                vars.chatOpen = false
+            }
+        }
+    )
+
     vars.chatOpen = true;
 
-    uiElements.push(textInput)
+    uiElements.push(textInput, backbutton)
 }
 
 export function playMenu() {
+
+    uiElements.length = 0;
+    serverSearch();
 
     const playTitle = new Text(
         {
@@ -227,5 +264,82 @@ export function playMenu() {
         }
     )
 
-    uiElements.push(playTitle)
+    const backbutton = new Button(
+        {
+            name: "backbutton",
+
+            pos: {
+                x: 25,
+                y: 25,
+                justify: "left"
+            },
+
+            size: {
+                width: 200,
+                height: 75
+            },
+
+            text: {
+                text: "↩ back",
+                fontsize: 48,
+                justify: "center"
+            },
+
+            composite: {
+                opacity: 1
+            },
+
+            func: () => {
+                mainMenu()
+            }
+        }
+    )
+
+    const serverList = new List(
+        {
+            name: "serverList",
+
+            pos: {
+                x: () => canvas.width / 3,
+                y: () => canvas.height / 3,
+                justify: "center"
+            },
+
+            size: {
+                width: () => canvas.width / 3,
+                height: () => canvas.height / 3
+            },
+
+            composite: {
+                opacity: 1
+            },
+
+            layout: {
+                direction: "vertical",
+                spacing: 10
+            },
+
+            template: (server) => 
+                new Button(
+                    {
+                        name: server.id,
+
+                        text: {
+                            text: server.name,
+                            fontsize: 32,
+                            justify: "center"
+                        },
+
+                        size: {
+                            width: 300,
+                            height: 75
+                        },
+
+                        func: () => joinServer(server.id)
+                    }
+                ),
+        }
+    )
+
+    uiElements.push(playTitle, serverList, backbutton)
 }

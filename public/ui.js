@@ -71,6 +71,10 @@ export function removeUI(name) {
     }
 }
 
+export function findUI(name) {
+    return uiElements.find(e => e.name === name);
+}
+
 export class UIElement {
 
     constructor(
@@ -99,6 +103,18 @@ export class UIElement {
 
     }
 
+    addChild(child) {
+        this.children.push(child)
+    }
+    
+    removeChild(child) {
+        const index = this.children.indexOf(child)
+
+        if (index !== -1) {
+            this.children.splice(index, 1)
+        }
+    }
+
     contains(x, y) {
 
         let rx = resolve(this.x);
@@ -123,6 +139,21 @@ export class UIElement {
         );
 
     }
+
+    render() {
+
+        if (this.opacity === 0) return;
+
+        this.draw()
+
+        for (const child of this.children) {
+            if (child.opacity === 0) return;
+            child.render()
+        }
+    }
+
+    draw() {}
+
 }
 
 export class Text extends UIElement {
@@ -180,7 +211,7 @@ export class Button extends UIElement {
         super(options);
 
         this.type = "button";
-        
+
         this.func = options.func;
 
         this.text = options.text?.text;
@@ -214,4 +245,41 @@ export class Button extends UIElement {
 
     }
 
+}
+
+export class List extends UIElement {
+    constructor(
+        options = {}
+    ) {
+
+        super(options)
+
+        this.type = "list"
+
+        this.layout = options.layout?.direction ?? "vertical"
+        this.spacing = options.layout?.spacing ?? 50
+        this.data = options.data ?? []
+
+        this.template = options.template
+    }
+
+    buildChildren() {
+        return this.data.map(this.template)
+    }
+
+    draw() {
+        let x = resolve(this.x)
+        let y = resolve(this.y)
+
+        const generated = this.buildChildren()
+
+        for (const child of generated) {
+            child.x = x
+            child.y = y
+
+            child.render();
+
+            y += resolve(child.height) + resolve(this.spacing)
+        }
+    }
 }

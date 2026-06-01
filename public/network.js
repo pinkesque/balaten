@@ -1,5 +1,6 @@
-import { vars } from "./state.js"
+import { vars, uiElements } from "./state.js"
 import { mainMenu } from "./menus.js"
+import { findUI } from "./ui.js"
 
 export const socket = io();
 
@@ -18,3 +19,13 @@ socket.on("register", (tf,name) => {
         mainMenu();
     }
 });
+
+export function serverSearch() {
+    socket.emit("serverSearch")
+}
+
+socket.on("serverList", (data) => {
+    const list = findUI("serverList")
+    console.log(list)
+    list.data = Object.values(data)
+})

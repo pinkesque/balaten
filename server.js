@@ -67,6 +67,10 @@ io.on('connection', (socket) => {
 
     });
 
+    socket.on("serverSearch", () => {
+        socket.emit("serverList", servers)
+    })
+
 });
 
 server.listen(3000, () => {
@@ -76,10 +80,10 @@ server.listen(3000, () => {
 let messages = [];
 
 const censorlist = [
-    "nigger",
-    "nigga",
-    "negro",
-    "faggot"
+    "swear",
+    "word",
+    "you",
+    "suck"
 ];
 
 function censor(text, banned) {
@@ -129,5 +133,15 @@ function init() {
 	console.log(shuffleDeck(fullDeck))
 	console.log(jokers)
 }
+
+servers = [
+    {
+        name: "yo", id: "s1"
+    },
+
+    {
+        name: "fuck you", id: "s2"
+    }
+]
 
 init();

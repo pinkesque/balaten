@@ -13,10 +13,8 @@ export function initInput() {
         vars.vinput.focus();
 
         for (const element of uiElements) {
-            if (element.type === "button" && element.contains(mouse.x, mouse.y)) {
-                element.onClick();
-            }
-        }   
+            checkClick(element, mouse.x, mouse.y);
+        }
     });
 
     document.addEventListener("keydown", (event) => {
@@ -54,3 +52,13 @@ export let mouse = {
     x: 0,
     y: 0
 };
+
+function checkClick(element, x, y) {
+    if (element.type === "button" && element.contains(mouse.x, mouse.y)) {
+        element.onClick();
+    }
+
+    for (const child of element.children) {
+        checkClick(child, x, y)
+    }
+}
