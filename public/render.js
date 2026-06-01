@@ -49,7 +49,7 @@ export function render() {
 
         if (vars.textY < fs * vars.textOffset) {
 
-            vars.textY -= (vars.textY - desiredY) * 0.175;
+            vars.textY -= (vars.textY - vars.desiredY) * 0.175;
 
             if (vars.textY > fs * vars.textOffset) {
                 vars.textY = fs * vars.textOffset

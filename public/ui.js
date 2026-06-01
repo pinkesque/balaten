@@ -74,29 +74,28 @@ export function removeUI(name) {
 export class UIElement {
 
     constructor(
-        name, 
-        pos = {}, 
-        size = {},
-        composite = {}
+        options = {}
     ) {
 
-        this.name = name;
+        this.name = options.name;
 
-        this.x = pos.x ?? 0;
-        this.y = pos.y ?? 0;
-        this.angle = pos.angle ?? 0;
-        this.justify = pos.justify ?? "left";
+        this.x = options.pos?.x ?? 0;
+        this.y = options.pos?.y ?? 0;
+        this.angle = options.pos?.angle ?? 0;
+        this.justify = options.pos?.justify ?? "left";
 
         this.prevX = this.x;
         this.prevY = this.y;
-        this.prevAngle = pos.angle ?? 0;
+        this.prevAngle = options.pos?.angle ?? 0;
 
-        this.size = size.size ?? false;
-        this.width = size.width ?? 0;
-        this.height = size.height ?? 0;
+        this.size = options.size?.size ?? false;
+        this.width = options.size?.width ?? 0;
+        this.height = options.size?.height ?? 0;
 
-        this.opacity = composite.opacity ?? 1;
+        this.opacity = options.composite?.opacity ?? 1;
         this.active = true;
+
+        this.children = options.children ?? [];
 
     }
 
@@ -129,17 +128,14 @@ export class UIElement {
 export class Text extends UIElement {
 
     constructor(
-        name, 
-        text = {}, 
-        pos = {},
-        composite = {}
+        options = {}
     ) {
 
-        super(name, pos, composite);
+        super(options);
 
         this.type = "text";
-        this.text = text.text;
-        this.fontsize = text.fontsize;
+        this.text = options.text?.text;
+        this.fontsize = options.text?.fontsize;
 
     }
 
@@ -154,15 +150,14 @@ export class Text extends UIElement {
 export class TextField extends Text {
 
     constructor(
-        name, 
-        text = {}, 
-        pos = {}, 
-        composite = {}
+        options = {}
     ) {
 
-        super(name, text, pos, composite);
+        super(options);
 
-        this.selectionPos = text.selectionPos;
+        this.type = "textField";
+
+        this.selectionPos = options.text?.selectionPos;
 
     }
 
@@ -179,25 +174,21 @@ export class TextField extends Text {
 export class Button extends UIElement {
 
     constructor(
-        name, 
-        pos = {}, 
-        size = {}, 
-        text = {},
-        composite = {}, 
-        func
+        options = {}
     ) {
 
-        super(name, pos, size, composite);
+        super(options);
 
         this.type = "button";
-        this.func = func;
+        
+        this.func = options.func;
 
-        this.text = text.text;
-        this.fontsize = text.fontsize;
+        this.text = options.text?.text;
+        this.fontsize = options.text?.fontsize;
 
         this.textx = () => resolve(this.x);
         this.texty = () => resolve(this.y) + resolve(this.fontsize) + 5;
-        this.textjustify = text.justify ?? this.justify;
+        this.textjustify = options.text?.justify ?? this.justify;
 
     }
 

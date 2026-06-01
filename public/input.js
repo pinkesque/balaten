@@ -32,21 +32,21 @@ export function initInput() {
         }
 
         if (event.key === "ArrowUp") {
-            textOffset += 1;
-            if (textOffset > messages.length - 1) textOffset = messages.length - 1;
+            vars.textOffset += 1;
+            if (vars.textOffset > vars.messages.length - 1) vars.textOffset = vars.messages.length - 1;
         }
         
         if (event.key === "ArrowDown") {
-            textOffset -= 1;
-            if (textOffset < 0) textOffset = 0;
+            vars.textOffset -= 1;
+            if (vars.textOffset < 0) vars.textOffset = 0;
         }
 
     });
 
     document.addEventListener("wheel", e => {
-        textOffset -= e.deltaY / 100;
-        if (textOffset < 0) textOffset = 0;
-        if (textOffset > messages.length - 1) textOffset = messages.length - 1;
+        vars.textOffset -= e.deltaY / 100;
+        if (vars.textOffset < 0) vars.textOffset = 0;
+        if (vars.textOffset > vars.messages.length - 1) vars.textOffset = vars.messages.length - 1;
     })
 }
 
