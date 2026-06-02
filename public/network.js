@@ -21,11 +21,19 @@ socket.on("register", (tf,name) => {
 });
 
 export function serverSearch() {
-    socket.emit("serverSearch")
+    socket.emit("serversearch")
 }
 
-socket.on("serverList", (data) => {
+socket.on("serverlist", (data) => {
     const list = findUI("serverList")
     console.log(list)
     list.data = Object.values(data)
 })
+
+export function joinServer(server) {
+    socket.emit("joinserver", server)
+}
+
+export function createServer(servername, options) {
+    socket.emit("createserver", servername, options)
+}

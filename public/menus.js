@@ -1,6 +1,6 @@
 import { UIElement, Text, TextField, Button, List } from "./ui.js"
 import { vars, canvas, ctx, uiElements } from "./state.js"
-import { socket, serverSearch } from "./network.js"
+import { socket, serverSearch, joinServer, createServer } from "./network.js"
 
 export function startMenu() {
 
@@ -346,5 +346,43 @@ export function playMenu() {
         }
     )
 
-    uiElements.push(playTitle, serverList, backbutton)
+    const createserver = new Button(
+        {
+            name: "createserver",
+
+            pos: {
+                x: 25,
+                y: () => canvas.height - 75 - 25,
+                justify: "left"
+            },
+
+            size: {
+                width: 400,
+                height: 75
+            },
+
+            text: {
+                text: "create a bitchass server yo",
+                fontsize: 48,
+                justify: "center"
+            },
+
+            composite: {
+                opacity: 1
+            },
+
+            func: () => {
+                createServer(
+                    {
+                        servername: "lazy",
+                        options: {
+                            fuckyou: true
+                        }
+                    }
+                )
+            }
+        }
+    )
+
+    uiElements.push(playTitle, serverList, backbutton, createserver)
 }

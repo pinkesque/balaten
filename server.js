@@ -6,6 +6,8 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+let servers = [];
+
 const usernameRegex = /^[A-Za-z0-9_]+$/;
 
 app.use(express.static("public")); // send client side html and js to the client on connect
@@ -67,8 +69,22 @@ io.on('connection', (socket) => {
 
     });
 
-    socket.on("serverSearch", () => {
-        socket.emit("serverList", servers)
+    socket.on("serversearch", () => {
+        socket.emit("serverlist", servers)
+    })
+
+    socket.on("joinserver", (server) => {
+        console.log(socket.username + " is trying to join server " + server)
+    })
+
+    socket.on("createserver", (server) => {
+        servers.push({
+            name: server.servername,
+            id: servers.length,
+            options: server.options
+        });
+
+        io.emit("serverlist", servers)
     })
 
 });
@@ -133,15 +149,5 @@ function init() {
 	console.log(shuffleDeck(fullDeck))
 	console.log(jokers)
 }
-
-servers = [
-    {
-        name: "yo", id: "s1"
-    },
-
-    {
-        name: "fuck you", id: "s2"
-    }
-]
 
 init();

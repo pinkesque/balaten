@@ -88,11 +88,11 @@ export class UIElement {
         this.angle = options.pos?.angle ?? 0;
         this.justify = options.pos?.justify ?? "left";
 
-        this.prevX = this.x;
-        this.prevY = this.y;
-        this.prevAngle = options.pos?.angle ?? 0;
+        // this.prevX = () => this.x;
+        // this.prevY = () => this.y;
+        // this.prevAngle = options.pos?.angle ?? 0;
 
-        this.size = options.size?.size ?? false;
+        this.size = options.size?.size ?? 1;
         this.width = options.size?.width ?? 0;
         this.height = options.size?.height ?? 0;
 
